@@ -1,0 +1,21 @@
+message = Map();
+response = invokeurl
+[
+	url :"https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=dict.1.1.20221015T084958Z.9c560fdc48a2536e.45ba6db31d1773f70afea69f1b4df86dc9d8a679&lang=en-en&text=" + arguments
+	type :GET
+];
+if(response.getJSON("def").size() == 0)
+{
+	message.put("text","Sorry we cannot find your word  :( ");
+	return message;
+}
+json_list = response.toJSONList();
+id_list = List();
+// id_list.add("Synonyms of ".concat(arguments.upper()).concat(":"));
+trList = response.getJSON("def").getJSON("tr").toJSONList();
+for each  item in trList
+{
+	id_list.add(item.get("text"));
+}
+message.put("text",id_list.toText().replaceAll(",","\n"));
+return message;

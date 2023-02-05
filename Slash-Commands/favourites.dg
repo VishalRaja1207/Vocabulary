@@ -1,0 +1,22 @@
+response = Map();
+query_map = Map();
+criteria_string = "userid==" + user.get("id");
+query_map.put("criteria",criteria_string);
+response_map = zoho.cliq.getRecords("favourite",query_map);
+if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+{
+	freq_list = List();
+	res_list = response_map.get("list");
+	freq_list.add("Your favourite words are :");
+	size = response_map.get("list").size();
+	for each  item in res_list
+	{
+		freq_list.add(item.get("favword"));
+	}
+	response.put("text",freq_list.toText().replaceAll(",","\n"));
+}
+else
+{
+	response.put("text","Nah! You got no favourites :(");
+}
+return response;

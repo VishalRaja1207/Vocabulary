@@ -1,0 +1,19 @@
+response = Map();
+query_map = Map();
+criteria_string = "dictuserid==" + user.get("id");
+query_map.put("criteria",criteria_string);
+response_map = zoho.cliq.getRecords("dictusersdb",query_map);
+if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+{
+	response.put("text","Woohoo! Glad that you subscribed back! :wink:");
+}
+else
+{
+	values_map = Map();
+	values_map.put("name",user.get("first_name"));
+	values_map.put("dictuserid",user.get("id").toString());
+	response_map = zoho.cliq.createRecord("dictusersdb",values_map);
+	response.put("text","Hey *" + user.get("first_name") + "* ! Thanks for subscribing!");
+	info response_map;
+}
+return response;

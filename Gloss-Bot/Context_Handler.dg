@@ -1,0 +1,145 @@
+response = Map();
+if(context_id.matches("Dictionary with History") || context_id.matches("Dictionary without History"))
+{
+	word = "";
+	type = "";
+	if(context_id.matches("Dictionary with History"))
+	{
+		word = answers.get("history").get("text");
+	}
+	else
+	{
+		answerList = List();
+		answers.sortKey();
+		answerList = answers.keys();
+		word = answerList.get(1).toString().getSuffix("-");
+	}
+	if(context_id.matches("Dictionary with History"))
+	{
+		type = answers.get("parts of speech").get("text");
+	}
+	else
+	{
+		type = answers.get("parts of speech -" + word).get("text");
+	}
+	choice = answers.get("information").get("text");
+	apicall = invokeurl
+	[
+		url :"https://api.dictionaryapi.dev/api/v2/entries/en/" + word
+		type :GET
+	];
+	synonyms = invokeurl
+	[
+		url :"https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=dict.1.1.20221015T084958Z.9c560fdc48a2536e.45ba6db31d1773f70afea69f1b4df86dc9d8a679&lang=en-en&text=" + word
+		type :GET
+	];
+	if(apicall.getJSON("title") != "No Definitions Found" || synonyms.getJSON("def").size() != 0)
+	{
+		values_map = Map();
+		values_map.put("userid",user.get("id").toString());
+		values_map.put("word",word);
+		response_map = zoho.cliq.createRecord("userwords",values_map);
+	}
+	//DEFINITIONS
+	if(choice.containsIgnoreCase("DEFINITION") || choice.containsIgnoreCase("ALL"))
+	{
+		//error handling
+		if(apicall.getJSON("title") == "No Definitions Found")
+		{
+			response.put("text","Sorry we cannot find your word :( ");
+			return response;
+		}
+		meaningsList = List();
+		definitionList = List();
+		outputList = List();
+		for each  item in apicall
+		{
+			meaningsList = item.getJSON("meanings").toJSONList();
+			for each  item1 in meaningsList
+			{
+				if(item1.getJSON("partOfSpeech") == type)
+				{
+					outputList.add(item1.getJSON("definitions").toJSONList());
+				}
+			}
+		}
+		for each  item in outputList
+		{
+			for each  item1 in item
+			{
+				definitionList.add(item1.getJSON("definition"));
+			}
+		}
+		response.put("text","\nDefinitions for " + word.upper() + " :\n");
+		count = 0;
+		for each  item in definitionList
+		{
+			count = count + 1;
+			str = response.get("text");
+			response.put("text",str + item.toString() + "\n");
+			if(count == 3)
+			{
+				break;
+			}
+		}
+	}
+	//DEFINITIONS
+	//SYNONYMS
+	if(choice.containsIgnoreCase("SYNONYMS") || choice.containsIgnoreCase("ALL"))
+	{
+		if(synonyms.getJSON("def").size() == 0)
+		{
+			response.put("text","Sorry we cannot find your word :( ");
+			return response;
+		}
+		synonyms_list = List();
+		synonyms_list.add("\nSynonyms of " + word.upper() + ":");
+		trList = synonyms.getJSON("def").getJSON("tr").toJSONList();
+		for each  item in trList
+		{
+			if(item.get("pos") == type)
+			{
+				synonyms_list.add(item.get("text"));
+			}
+		}
+		if(choice.containsIgnoreCase("ALL"))
+		{
+			response.put("text",response.get("text") + synonyms_list.toText().replaceAll(",","\n"));
+		}
+		else
+		{
+			response.put("text",synonyms_list.toText().replaceAll(",","\n"));
+		}
+	}
+	//SYNONYMS 	
+	//AUDIO
+	if(choice.containsIgnoreCase("AUDIO") || choice.containsIgnoreCase("ALL"))
+	{
+		//error handling
+		if(apicall.getJSON("title") == "No Definitions Found")
+		{
+			response.put("text","Sorry we cannot find your word :( ");
+			return response;
+		}
+		audioList = List();
+		audioList = apicall.get(0).getJSON("phonetics").toJSONList();
+		for each  item in audioList
+		{
+			if(item.getJSON("audio") != "")
+			{
+				audio = item.getJSON("audio");
+				break;
+			}
+		}
+		if(choice.containsIgnoreCase("ALL"))
+		{
+			response.put("text",response.get("text") + "\n\nAUDIO : \n" + audio);
+		}
+		else
+		{
+			response.put("text","\n\nAUDIO : \n" + audio);
+		}
+	}
+	//AUDIO
+}
+return response;

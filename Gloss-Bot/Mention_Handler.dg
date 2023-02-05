@@ -1,0 +1,50 @@
+response = Map();
+word = message.trim();
+if(word.contains(" ") == true)
+{
+	response.put("text","Please enter a word instead of a sentence");
+}
+else
+{
+	apicall = invokeurl
+	[
+		url :"https://api.dictionaryapi.dev/api/v2/entries/en/" + word
+		type :GET
+	];
+	if(apicall.getJSON("title") == "No Definitions Found")
+	{
+		response.put("text","Sorry we cannot find your word :( ");
+		return response;
+	}
+	meaningsList = List();
+	definitionList = List();
+	outputList = List();
+	for each  item in apicall
+	{
+		meaningsList = item.getJSON("meanings").toJSONList();
+		for each  item1 in meaningsList
+		{
+			outputList.add(item1.getJSON("definitions").toJSONList());
+		}
+	}
+	for each  item in outputList
+	{
+		for each  item1 in item
+		{
+			definitionList.add(item1.getJSON("definition"));
+		}
+	}
+	response.put("text","\nDefinitions for " + word.upper() + " :\n");
+	count = 0;
+	for each  item in definitionList
+	{
+		count = count + 1;
+		str = response.get("text");
+		response.put("text",str + item.toString() + "\n");
+		if(count == 3)
+		{
+			break;
+		}
+	}
+}
+return response;

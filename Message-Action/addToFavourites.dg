@@ -1,0 +1,30 @@
+response = Map();
+messageType = message.get("type");
+if(messageType.containsIgnoreCase("TEXT"))
+{
+	word = message.trim().getJSON("content").getJSON("text");
+	if(word.contains(" ") || word.contains(":") || word.contains("/") || word.contains(".") || word.contains("www"))
+	{
+		response.put("text","Please enter a word instead of a sentence");
+	}
+	else
+	{
+		values_map = Map();
+		query_map = Map();
+		criteria_string = "userid==" + user.get("id") + " && favword==" + word;
+		query_map.put("criteria",criteria_string);
+		response_map = zoho.cliq.getRecords("favourite",query_map);
+		if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+		{
+			response.put("text","Already added to favourites");
+		}
+		else
+		{
+			values_map.put("userid",user.get("id"));
+			values_map.put("favword",word.toString());
+			response_map = zoho.cliq.createRecord("favourite",values_map);
+			response.put("text","Successfully added");
+		}
+	}
+}
+return response;

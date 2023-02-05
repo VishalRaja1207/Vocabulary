@@ -1,0 +1,106 @@
+response = Map();
+if(message.containsIgnoreCase("HI") || message.containsIgnoreCase("HEY") || message.containsIgnoreCase("HELLO"))
+{
+	response_map = Map();
+	query_map = Map();
+	criteria_string = "userid==" + user.get("id");
+	query_map.put("criteria",criteria_string);
+	response_map = zoho.cliq.getRecords("userwords",query_map);
+	if(response_map.get("status").equalsIgnoreCase("SUCCESS") && response_map.get("list").size() > 0)
+	{
+		response_list = response_map.get("list");
+		word_list = List();
+		if(response_map.get("list").size() >= 3)
+		{
+			response_list_size = response_map.get("list").size();
+			word1 = response_map.get("list").get(0).get("word");
+			word2 = response_map.get("list").get(1).get("word");
+			word3 = response_map.get("list").get(2).get("word");
+			context = {
+                "id":"Dictionary with History",
+                "timeout":"300",
+                "params":{
+                    {
+                        "name":"history",
+                        "question":"Hello\nYour previous words",
+                        "suggestions":{
+                            "list":{
+                                {"text":word1},
+                                {"text":word2},
+                                {"text":word3}
+                            }
+                        }
+                    },
+                    {
+                        "name":"parts of speech",
+                        "question":"Let me know the parts of speech you want",
+                        "suggestions":{
+                            "list":{
+                                {"text":"noun"},
+                                {"text":"verb"},
+                                {"text":"adjective"},
+                                {"text":"adverb"},
+                                {"text":"Exit"}
+                            }
+                        }
+                    },
+                    {
+                        "name":"information",
+                        "question":"Please select any one of these options",
+                        "suggestions":{
+                            "list":{
+                                {"text":"definition"},
+                                {"text":"Synonyms"},
+                                {"text":"Audio"},
+                                {"text":"All"}
+                            }
+                        }
+                    }
+                }
+            };
+			response.put("context",context);
+		}
+		else
+		{
+			response.put("text","Hello!");
+			return response;
+		}
+	}
+}
+else
+{
+	word = message;
+	context = {
+        "id":"Dictionary without History",
+        "timeout":"300",
+        "params": {
+            {
+                "name":"parts of speech -" + word,
+                "question":"Hello!\nLet me know the parts of speech you want",
+                "suggestions":{
+                    "list":{
+                        {"text":"noun"},
+                        {"text":"verb"},
+                        {"text":"adjective"},
+                        {"text":"adverb"},
+                        {"text":"Exit"}
+                    }
+                }
+            },
+            {
+                "name":"information",
+                "question":"Please select any one of these options",
+                "suggestions":{
+                    "list":{
+                        {"text":"definition"},
+                        {"text":"Synonyms"},
+                        {"text":"Audio"},
+                        {"text":"All"}
+                    }
+                }
+            }
+        }
+    };
+	response.put("context",context);
+}
+return response;

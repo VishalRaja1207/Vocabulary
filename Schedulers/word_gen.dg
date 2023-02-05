@@ -1,0 +1,11 @@
+header_data = Map();
+header_data.put("X-Api-Key","XHqG1UFm+AbcCvcdXr4D7g==GL1Q3SPyxaLepJEp");
+response = invokeurl
+[
+	url :"https://api.api-ninjas.com/v1/randomword?type=verb"
+	type :GET
+	headers:header_data
+];
+word = response.toMap().get("word");
+display = "Word of the Day is : \n" + word;
+zoho.cliq.postToBot("dictionarybot",display);
